@@ -1,17 +1,18 @@
 const songList = document.getElementById("songList");
 const lettersContainer = document.getElementById("letters");
-
 let currentAudio = null;
 
-/* ---------------- LOAD SONGS ---------------- */
+// fetch songs via CORS proxy + iTunes
 async function loadSongs(letter = "") {
   songList.innerHTML =
     "<li class='list-group-item text-center'>Loading songs...</li>";
 
-  const term = letter || "bollywood";
-  const url = `https://itunes.apple.com/search?term=${encodeURIComponent(
-    term
-  )}&media=music&limit=25`;
+  const term = letter || "love"; // default search
+  const url = `https://api.allorigins.win/raw?url=${encodeURIComponent(
+    "https://itunes.apple.com/search?term=" +
+      encodeURIComponent(term) +
+      "&media=music&entity=song&limit=30"
+  )}`;
 
   try {
     const res = await fetch(url);
@@ -22,18 +23,17 @@ async function loadSongs(letter = "") {
         "<li class='list-group-item text-center'>No songs found</li>";
       return;
     }
-
     renderSongs(data.results, letter);
   } catch (err) {
     songList.innerHTML =
       "<li class='list-group-item text-center text-danger'>Error loading songs</li>";
+    console.error(err);
   }
 }
 
-/* ---------------- RENDER SONGS ---------------- */
+// render songs
 function renderSongs(songs, letter) {
   songList.innerHTML = "";
-
   songs.forEach((song) => {
     if (
       letter &&
@@ -47,7 +47,7 @@ function renderSongs(songs, letter) {
     li.innerHTML = `
       <div class="d-flex justify-content-between align-items-start">
         <div>
-          <strong>${song.trackName}</strong><br/>
+          <strong>${song.trackName}</strong><br />
           <small class="text-muted">${song.artistName}</small>
         </div>
         <div class="d-flex gap-2">
@@ -61,10 +61,9 @@ function renderSongs(songs, letter) {
           </button>
         </div>
       </div>
-      <div class="lyrics mt-3 d-none"></div>
+      <div class="lyrics mt-2 d-none"></div>
     `;
 
-    /* ---- Preview ---- */
     const previewBtn = li.querySelector(".preview-btn");
     if (previewBtn) {
       previewBtn.onclick = () => {
@@ -74,7 +73,6 @@ function renderSongs(songs, letter) {
       };
     }
 
-    /* ---- Lyrics ---- */
     const lyricsBtn = li.querySelector(".lyrics-btn");
     const lyricsBox = li.querySelector(".lyrics");
 
@@ -84,7 +82,6 @@ function renderSongs(songs, letter) {
         lyricsBtn.textContent = "Load Lyrics";
         return;
       }
-
       lyricsBtn.textContent = "Loading...";
       lyricsBox.classList.remove("d-none");
 
@@ -97,7 +94,7 @@ function renderSongs(songs, letter) {
         const data = await res.json();
 
         lyricsBox.innerHTML = data.lyrics
-          ? `<pre style="white-space:pre-wrap">${data.lyrics}</pre>`
+          ? `<pre style="white-space: pre-wrap;">${data.lyrics}</pre>`
           : "<em>Lyrics not available</em>";
       } catch {
         lyricsBox.innerHTML = "<em>Error loading lyrics</em>";
@@ -110,7 +107,7 @@ function renderSongs(songs, letter) {
   });
 }
 
-/* ---------------- A-Z BUTTONS ---------------- */
+// alphabet buttons
 function generateLetters() {
   for (let i = 65; i <= 90; i++) {
     const letter = String.fromCharCode(i);
@@ -122,15 +119,5 @@ function generateLetters() {
   }
 }
 
-/* ---------------- INIT ---------------- */
 generateLetters();
-loadSongs(); // default load    btn.className = "btn btn-outline-dark btn-sm";
-    btn.textContent = letter;
-    btn.onclick = () => loadSongs(letter);
-    lettersContainer.appendChild(btn);
-  }
-}
-
-/* ---------------- INIT ---------------- */
-generateLetters();
-loadSongs(); // default popular songs
+loadSongs(); // default
